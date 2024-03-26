@@ -93,7 +93,7 @@ void callback(char *topic_recv, byte *payload, unsigned int length) {
       client.publish(topic_balance_check, credit_str.c_str());
       write_oled("Credit\nAdded"); digitalWrite(LED_PIN, HIGH); 
       delay(1000); 
-      write_oled("E-Wallet\nReady"); digitalWrite(LED_PIN, LOW);
+      write_oled("E-Wallet\nReady\nRp" + String(credit)); digitalWrite(LED_PIN, LOW);
       client.loop();
     }
   }
@@ -140,7 +140,7 @@ void setup() {
   write_oled("Connecting\nBroker");
   connect_broker();
   write_oled("Broker\nConnected"); delay(1000);
-  write_oled("E-Wallet\nReady");
+  write_oled("E-Wallet\nReady\nRp" + String(credit));
 }
 
 void loop() {
@@ -170,7 +170,7 @@ void loop() {
         client.loop();
       }
     }
-    write_oled("E-Wallet\nReady");
+    write_oled("E-Wallet\nReady\nRp" + String(credit));
     deduct = false;
   }
   else {
