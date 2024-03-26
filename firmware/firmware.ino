@@ -5,16 +5,18 @@
 #include <PubSubClient.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Preferences.h>
 
 // Macro
 #define SCREEN_WIDTH 128 
 #define SCREEN_HEIGHT 64
 #define BUTTON_PIN 0
 #define LED_PIN 2
+#define CREDITS_KEY "credit"
 
 // WiFi
-const char *ssid = "-"; 
-const char *password = "-"; 
+const char *ssid = ""; 
+const char *password = ""; 
 
 // MQTT Broker
 const char *mqtt_broker = "free.mqtt.iyoti.id";
@@ -31,6 +33,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 bool deduct = false;
+Preferences preferences;
 
 bool isNumeric(const char* str) {
     if (*str == '\0') {
@@ -83,6 +86,7 @@ void callback(char *topic_recv, byte *payload, unsigned int length) {
   else if (String(topic_recv) == String(topic_balance_topup)) {
     if (isNumeric(msg.c_str())) {
       int topup = atoi(msg.c_str());
+      preferences.putInt(CREDITS_KEY, credit + topup);
       credit += topup;
       credit_str = String(credit);
       client.publish(topic_payment_log, msg.c_str());
@@ -118,6 +122,13 @@ void setup() {
     for(;;);
   }
 
+  // Preferences
+  preferences.begin("payment", false);
+  if (!preferences.isKey(CREDITS_KEY)) {
+    preferences.putInt(CREDITS_KEY, credit);
+  }
+  credit = preferences.getInt(CREDITS_KEY);
+
   // Connect to Wi-Fi
   write_oled("Connecting\nWiFi");
   connect_wifi();
@@ -134,6 +145,7 @@ void loop() {
   if (deduct) {
     unsigned long start_time = millis();
     if (credit - deduction >= 0) {
+      preferences.putInt(CREDITS_KEY, credit - deduction);
       credit -= deduction;
       write_oled("Credit\nDeducted");
       String log = "-" + String(20000);
