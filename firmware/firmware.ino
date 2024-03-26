@@ -91,7 +91,9 @@ void callback(char *topic_recv, byte *payload, unsigned int length) {
       credit_str = String(credit);
       client.publish(topic_payment_log, msg.c_str());
       client.publish(topic_balance_check, credit_str.c_str());
-      write_oled("Credit\nAdded"); delay(1000); write_oled("E-Wallet\nReady");
+      write_oled("Credit\nAdded"); digitalWrite(LED_PIN, HIGH); 
+      delay(1000); 
+      write_oled("E-Wallet\nReady"); digitalWrite(LED_PIN, LOW);
       client.loop();
     }
   }
