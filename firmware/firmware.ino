@@ -19,8 +19,8 @@ const char *password = "-";
 // MQTT Broker
 const char *mqtt_broker = "free.mqtt.iyoti.id";
 const int mqtt_port = 1883;
-const char *topic_payment_pay = "/13520110/payment/pay";
-const char *topic_payment_ack = "/13520110/payment/ack";
+const char *topic_payment_log = "/13520110/payment/log";
+const char *topic_balance_check = "/13520110/balance/check";
 const char *client_id = "ESP32Client13520110";
 
 // Global Variables
@@ -50,17 +50,21 @@ void connect_broker() {
     delay(10);
   }
   Serial.println("MQTT Broker connected");
-  // client.subscribe(ir_topic);
+  client.subscribe(topic_balance_check);
 }
 
 void callback(char *topic_recv, byte *payload, unsigned int length) {
   String msg;
-  // if (String(topic_recv) == String(ir_topic)) {
-  //   for (int i = 0; i < length; i++) {
-  //     msg += (char)payload[i];
-  //   }
-  //   Serial.println("Data received: " + msg);
-  // }
+  if (String(topic_recv) == String(topic_balance_check)) {
+    for (int i = 0; i < length; i++) {
+      msg += (char)payload[i];
+    }
+    if (msg == "check") {
+      String credit_str = String(credit);
+      client.publish(topic_balance_check, credit_str.c_str()); 
+      client.loop();
+    }
+  }
 }
 
 void IRAM_ATTR isr() {
@@ -105,22 +109,30 @@ void loop() {
     if (credit - deduction >= 0) {
       credit -= deduction;
       write_oled("Credit\nDeducted");
+      String log = "-" + String(20000);
+      client.publish(topic_payment_log, log.c_str());
       while(millis() - start_time < 5000){
         digitalWrite(LED_PIN, HIGH);
+        client.loop();
       }
       digitalWrite(LED_PIN, LOW);
     }
     else {
       write_oled("Credit\nNot\nSufficient");
+      client.publish(topic_payment_log, "0");
       while(millis() - start_time < 5000){
         digitalWrite(LED_PIN, HIGH);
         delay(250);
         digitalWrite(LED_PIN, LOW);
         delay(250);
+        client.loop();
       }
     }
     write_oled("E-Wallet\nReady");
     deduct = false;
+  }
+  else {
+    client.loop();
   }
   delay(20);
 }
