@@ -21,10 +21,10 @@ const char *password = "";
 // MQTT Broker
 const char *mqtt_broker = "free.mqtt.iyoti.id";
 const int mqtt_port = 1883;
-const char *topic_payment_log = "/13520110/payment/log";
-const char *topic_balance_check = "/13520110/balance/check";
-const char *topic_balance_topup = "/13520110/balance/topup";
-const char *client_id = "ESP32Client13520110IoTPayment";
+const char *topic_payment_log = "/iot-payment/payment/log";
+const char *topic_balance_check = "/iot-payment/balance/check";
+const char *topic_balance_topup = "/iot-payment/balance/topup";
+const char *client_id = "ESP32ClientMyEWallet";
 
 // Global Variables
 int credit = 210000;
