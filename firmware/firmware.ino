@@ -12,11 +12,11 @@
 #define SCREEN_HEIGHT 64
 #define BUTTON_PIN 0
 #define LED_PIN 2
-#define CREDITS_KEY "credit"
+#define BALANCE_KEY "balance"
 
 // WiFi
 const char *ssid = ""; 
-const char *password = ""; 
+const char *password = "-"; 
 
 // MQTT Broker
 const char *mqtt_broker = "free.mqtt.iyoti.id";
@@ -27,7 +27,7 @@ const char *topic_balance_topup = "/iot-payment/balance/topup";
 const char *client_id = "ESP32ClientMyEWallet";
 
 // Global Variables
-int credit = 210000;
+int balance = 210000;
 int deduction = 20000;
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -76,24 +76,24 @@ void callback(char *topic_recv, byte *payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     msg += (char)payload[i];
   }
-  String credit_str = String(credit);
+  String balance_str = String(balance);
   if (String(topic_recv) == String(topic_balance_check)) {
     if (msg == "check") {
-      client.publish(topic_balance_check, credit_str.c_str()); 
+      client.publish(topic_balance_check, balance_str.c_str()); 
       client.loop();
     }
   }
   else if (String(topic_recv) == String(topic_balance_topup)) {
     if (isNumeric(msg.c_str())) {
       int topup = atoi(msg.c_str());
-      preferences.putInt(CREDITS_KEY, credit + topup);
-      credit += topup;
-      credit_str = String(credit);
-      String log = msg + "," + credit_str;
+      preferences.putInt(BALANCE_KEY, balance + topup);
+      balance += topup;
+      balance_str = String(balance);
+      String log = msg + "," + balance_str;
       client.publish(topic_payment_log, log.c_str());
-      write_oled("Credit\nAdded"); digitalWrite(LED_PIN, HIGH); 
+      write_oled("Balance\nAdded"); digitalWrite(LED_PIN, HIGH); 
       delay(1000); 
-      write_oled("E-Wallet\nReady\nRp" + String(credit)); digitalWrite(LED_PIN, LOW);
+      write_oled("E-Wallet\nReady\nRp" + String(balance)); digitalWrite(LED_PIN, LOW);
       client.loop();
     }
   }
@@ -126,10 +126,10 @@ void setup() {
 
   // Preferences
   preferences.begin("payment", false);
-  if (!preferences.isKey(CREDITS_KEY)) {
-    preferences.putInt(CREDITS_KEY, credit);
+  if (!preferences.isKey(BALANCE_KEY)) {
+    preferences.putInt(BALANCE_KEY, balance);
   }
-  credit = preferences.getInt(CREDITS_KEY);
+  balance = preferences.getInt(BALANCE_KEY);
 
   // Connect to Wi-Fi
   write_oled("Connecting\nWiFi");
@@ -140,18 +140,18 @@ void setup() {
   write_oled("Connecting\nBroker");
   connect_broker();
   write_oled("Broker\nConnected"); delay(1000);
-  write_oled("E-Wallet\nReady\nRp" + String(credit));
+  write_oled("E-Wallet\nReady\nRp" + String(balance));
 }
 
 void loop() {
   if (deduct) {
     unsigned long start_time = millis();
     String log;
-    if (credit - deduction >= 0) {
-      preferences.putInt(CREDITS_KEY, credit - deduction);
-      credit -= deduction;
-      write_oled("Credit\nDeducted");
-      log = "-" + String(20000) + "," + String(credit);
+    if (balance - deduction >= 0) {
+      preferences.putInt(BALANCE_KEY, balance - deduction);
+      balance -= deduction;
+      write_oled("Balance\nDeducted");
+      log = "-" + String(20000) + "," + String(balance);
       client.publish(topic_payment_log, log.c_str());
       while(millis() - start_time < 5000){
         digitalWrite(LED_PIN, HIGH);
@@ -160,8 +160,8 @@ void loop() {
       digitalWrite(LED_PIN, LOW);
     }
     else {
-      write_oled("Credit\nNot\nSufficient");
-      log = "0," + String(credit);
+      write_oled("Balance\nNot\nSufficient");
+      log = "0," + String(balance);
       client.publish(topic_payment_log, log.c_str());
       while(millis() - start_time < 5000){
         digitalWrite(LED_PIN, HIGH);
@@ -171,7 +171,7 @@ void loop() {
         client.loop();
       }
     }
-    write_oled("E-Wallet\nReady\nRp" + String(credit));
+    write_oled("E-Wallet\nReady\nRp" + String(balance));
     deduct = false;
   }
   else {
