@@ -28,9 +28,9 @@ const char *client_id = "ESP32ClientMyEWallet";
 
 // Global Variables
 int balance = 210000;
-int max_balance = 300000;
+int max_balance = 5000000;
 int deduction = 20000;
-int max_topup = 100000;
+int max_topup = 5000000;
 WiFiClient espClient;
 PubSubClient client(espClient);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
