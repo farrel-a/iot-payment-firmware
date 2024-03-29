@@ -89,8 +89,8 @@ void callback(char *topic_recv, byte *payload, unsigned int length) {
       preferences.putInt(CREDITS_KEY, credit + topup);
       credit += topup;
       credit_str = String(credit);
-      client.publish(topic_payment_log, msg.c_str());
-      client.publish(topic_balance_check, credit_str.c_str());
+      String log = msg + "," + credit_str;
+      client.publish(topic_payment_log, log.c_str());
       write_oled("Credit\nAdded"); digitalWrite(LED_PIN, HIGH); 
       delay(1000); 
       write_oled("E-Wallet\nReady\nRp" + String(credit)); digitalWrite(LED_PIN, LOW);
@@ -146,13 +146,13 @@ void setup() {
 void loop() {
   if (deduct) {
     unsigned long start_time = millis();
+    String log;
     if (credit - deduction >= 0) {
       preferences.putInt(CREDITS_KEY, credit - deduction);
       credit -= deduction;
       write_oled("Credit\nDeducted");
-      String log = "-" + String(20000);
+      log = "-" + String(20000) + "," + String(credit);
       client.publish(topic_payment_log, log.c_str());
-      client.publish(topic_balance_check, String(credit).c_str());
       while(millis() - start_time < 5000){
         digitalWrite(LED_PIN, HIGH);
         client.loop();
@@ -161,7 +161,8 @@ void loop() {
     }
     else {
       write_oled("Credit\nNot\nSufficient");
-      client.publish(topic_payment_log, "0");
+      log = "0," + String(credit);
+      client.publish(topic_payment_log, log.c_str());
       while(millis() - start_time < 5000){
         digitalWrite(LED_PIN, HIGH);
         delay(250);
