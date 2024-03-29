@@ -16,7 +16,7 @@
 
 // WiFi
 const char *ssid = ""; 
-const char *password = "-"; 
+const char *password = ""; 
 
 // MQTT Broker
 const char *mqtt_broker = "free.mqtt.iyoti.id";
@@ -28,7 +28,9 @@ const char *client_id = "ESP32ClientMyEWallet";
 
 // Global Variables
 int balance = 210000;
+int max_balance = 300000;
 int deduction = 20000;
+int max_topup = 100000;
 WiFiClient espClient;
 PubSubClient client(espClient);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -86,8 +88,9 @@ void callback(char *topic_recv, byte *payload, unsigned int length) {
   else if (String(topic_recv) == String(topic_balance_topup)) {
     if (isNumeric(msg.c_str())) {
       int topup = atoi(msg.c_str());
-      preferences.putInt(BALANCE_KEY, balance + topup);
-      balance += topup;
+      topup = topup < max_topup ? topup : max_topup;
+      balance = balance + topup < max_balance ? balance + topup : max_balance;
+      preferences.putInt(BALANCE_KEY, balance);
       balance_str = String(balance);
       String log = msg + "," + balance_str;
       client.publish(topic_payment_log, log.c_str());
