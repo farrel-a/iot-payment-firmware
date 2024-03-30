@@ -19,8 +19,8 @@ const char *ssid = "";
 const char *password = ""; 
 
 // MQTT Broker
-const char *mqtt_broker = "free.mqtt.iyoti.id";
-const int mqtt_port = 1883;
+const char *mqtt_broker = "";
+const int mqtt_port = 0;
 const char *topic_payment_log = "/iot-payment/payment/log";
 const char *topic_balance_check = "/iot-payment/balance/check";
 const char *topic_balance_topup = "/iot-payment/balance/topup";
